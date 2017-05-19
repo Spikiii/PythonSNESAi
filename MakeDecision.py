@@ -84,6 +84,24 @@ class VarEliminator():
                 self.X = self.X.delete(k)
                 k-=1
             k+=1
+        return Train.NN
+#inputs = [u, d, l, r, a, b, x, y, rb, lb, upLeft, upright, upa, upb, upx, upy, uprb, uplb, downleft, downright, downa, downb, downx, downy, downrb, downlb. lefta, leftb, leftx, ly, leftrb, leftlb, righta, rightb, rightx,righty,rightlb,rightrb] 
+#nums  = [0,1,2,3,4,5,||||6,7,8,9,10,11,12,13,14,15,16,17]
+
+def playGame(NN):
+    inputs =['u', 'd', 'l', 'r', 'a', 'b', 'x', 'y', 'q', 'p', 'ud', 'ul', 'ur', 'ua', 'ub', 'ux', 'uy', 'uq', 'up', 'dl', 'dr', 'da', 'db', 'dx', 'dy', 'dq', 'dp', 'lr', 'la', 'lb', 'lx', 'ly', 'lq', 'lp', 'ra', 'rb', 'rx', 'ry', 'rq', 'rp', 'ab', 'ax', 'ay', 'aq', 'ap', 'bx', 'by', 'bq', 'bp', 'xy', 'xq', 'xp', 'yq', 'yp', 'qp', 'udl', 'udr', 'uda', 'udb', 'udx', 'udy', 'udq', 'udp', 'ulr', 'ula', 'ulb', 'ulx', 'uly', 'ulq', 'ulp', 'ura', 'urb', 'urx', 'ury', 'urq', 'urp', 'uab', 'uax', 'uay', 'uaq', 'uap', 'ubx', 'uby', 'ubq', 'ubp', 'uxy', 'uxq', 'uxp', 'uyq', 'uyp', 'uqp', 'dlr', 'dla', 'dlb', 'dlx', 'dly', 'dlq', 'dlp', 'dra', 'drb', 'drx', 'dry', 'drq', 'drp', 'dab', 'dax', 'day', 'daq', 'dap', 'dbx', 'dby', 'dbq', 'dbp', 'dxy', 'dxq', 'dxp', 'dyq', 'dyp', 'dqp', 'lra', 'lrb', 'lrx', 'lry', 'lrq', 'lrp', 'lab', 'lax', 'lay', 'laq', 'lap', 'lbx', 'lby', 'lbq', 'lbp', 'lxy', 'lxq', 'lxp', 'lyq', 'lyp', 'lqp', 'rab', 'rax', 'ray', 'raq', 'rap', 'rbx', 'rby', 'rbq', 'rbp', 'rxy', 'rxq', 'rxp', 'ryq', 'ryp', 'rqp', 'abx', 'aby', 'abq', 'abp', 'axy', 'axq', 'axp', 'ayq', 'ayp', 'aqp', 'bxy', 'bxq', 'bxp', 'byq', 'byp', 'bqp', 'xyq', 'xyp', 'xqp', 'yqp']
+    ramCommand = pd.readcsv('isThereANewFrame.csv')
+    command = ramCommand.values
+    while(True):
+        if(not np.array_equal(pd.readscv('isThereANewFrame.csv').value, command):
+           command = pd.readscv('isThereANewFrame.csv').vsalue
+           Mario = NN.net(command[command.size-1])
+           
+
+
+    
+    # [up, down, left, right, a, b, x, y, rb, lb] [0 = off, 1 = on]
+         
 def main():  
     data_df = pd.readcsv('ramValuesAndInputs.csv')
     data = data_df.values
