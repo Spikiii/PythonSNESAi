@@ -10,7 +10,10 @@ buttonNames = {"A", "B", "X", "Y", "Up", "Down", "Left", "Right"}
 frame = 1
 
 --Settings
-filepath = "ram.csv"
+record = true
+rfilepath = "ram.csv"
+ifilepath = "inp.csv"
+sram = {} --This is the ram for the computer to search for, insert this manually
 
 function getRamValue(add)
 	return memory.readbyte(add)
@@ -45,34 +48,55 @@ function getBytes(startpoint, endpoint)
 end
 
 function writeRamValues(readBytes)
-	local f = csv.read(filepath)
+	local f = csv.read(rfilepath)
 	vals = {}
 	for b = 1, #readBytes do
 		vals[b] = getRamValue(readBytes[b])
 	end
-	table.insert(f, vals)
-	return f
+	return vals
 end
 
 function clearRamValues()
-	local f = csv.read(filepath)
-	simplecsv.write(filepath, {})
+	local f = csv.read(rfilepath)
+	simplecsv.write(rfilepath, {})
 end
 
+function getInputs()
+	local f = csv.read(ifilepath)
+	i = f[frame]
+	inpOrder = {"Up", "Down", "Left", "Right", "A", "B", "X", "Y", "Lb", "Rb"}
+	inputs = {}
+	for j = 1, #i do
+		if i[j] == 1 do
+			inputs[#inputs + 1] = inpOrder[j]
+		end
+	end
+	inp(inputs, 1)
+end
+	
 clearRamValues()
 
---0x7E0000:0x7FFF00}
+--0x7E0000:0x7FFF00
 
-vals = {}
+local f = csv.read(rfilepath)
+prevInp = #i
 
-for i = 1, 100 do
-	table.insert(vals, writeRamValues(getBytes(0x7E0000, 0x7FFF00)))
-	frame = frame + 1
-	emu.frameadvance()
+if record do	
+	for j = 1, 100 do
+		table.insert(f, writeRamValues(getBytes(0x7E0000, 0x7FFF00)))
+		frame = frame + 1
+		emu.frameadvance()
+	end
+	simplecsv.write(filepath, f)
 end
 
-local f = csv.read(filepath)
+--This is commented out until I can get it working tomorrow.
 
-simplecsv.write(filepath, vals)
+--else do
+--	while true do
+--		local i = csv.read(ifilepath)
+--		for b = 1, #sram
+--	end
+--end
 
 print("End Script")
