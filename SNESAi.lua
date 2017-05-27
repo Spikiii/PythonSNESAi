@@ -10,12 +10,13 @@ buttonNames = {"A", "B", "X", "Y", "Up", "Down", "Left", "Right"}
 frame = 1
 
 --Settings
-record = false
+record = true
 rfilepath = "ram.csv"
 ifilepath = "inp.csv"
 sram = {0x0014A2, 0x001496, 0x000E32, 0x000E33, 0x000E34, 0x000ED3, 0x000ED2, 0x000ED4,
 		0x000EE4, 0x000EE2, 0x000EE3, 0x000EF4, 0x000EF2, 0x000E43, 0x000EB2, 0x000EB3,
-		0x000EB4, 0x000324, 0x000E44, 0x00031C, 0x000E42, 0x0002A2, 0x0002A6, 0x0002AA} --This is the ram for the computer to search for, insert this manually
+		0x000EB4, 0x000324, 0x000E44, 0x00031C, 0x000E42, 0x0002A2, 0x0002A6, 0x0002AA,
+		0x7E0F34} --This is the ram for the computer to search for, insert this manually
 
 function getRamValue(add)
 	return memory.readbyte(add)
@@ -49,20 +50,6 @@ function getBytes(startpoint, endpoint)
 	return bytes
 end
 
-function writeRamValues(readBytes)
-	local f = csv.read(rfilepath)
-	vals = {}
-	for b = 1, #readBytes do
-		vals[b] = getRamValue(readBytes[b])
-	end
-	return vals
-end
-
-function clearRamValues()
-	local f = csv.read(rfilepath)
-	csv.write(rfilepath, {""})
-end
-
 function getInputs()
 	local f = csv.read(ifilepath)
 	i = f[frame]
@@ -75,34 +62,46 @@ function getInputs()
 	end
 	inp(inputs, 1)
 end
-	
---clearRamValues()
 
---0x7E0000:0x7FFF00
+--0x7E0000:0x7E1FFF
 
-local f = csv.read(rfilepath)
-
-if record then	
-	for j = 1, 100 do
-		table.insert(f, writeRamValues(getBytes(0x7E0000, 0x7E00FF)))
+if record then
+	local f = {}
+	for j = 1, 500 do
+		
+		score = getRamValue(0x7E0F36) * 655360 + getRamValue(0x7E0F35)  * 2560 + getRamValue(0x7E0F34) * 10
+		b = getBytes(0x7E0000, 0x7E1FFF)
+		for k = 1, #b do
+			b[k] = getRamValue(b[k])
+		end
+		
+		b[#b + 1] = score
+		table.insert(f, b)
+		
 		frame = frame + 1
 		emu.frameadvance()
+		emu.frameadvance()
+		emu.frameadvance()
+		emu.frameadvance()
+		
 	end
 	csv.write(rfilepath, f)
-end
-
+	
 else
+	local f = {}
 	prevFrame = 1
 	while true do
 		local i = csv.read(ifilepath)
 		if #i + 1 > preFrame then
 			getInputs()
+			score = getRamValue(0x7E0F36) * 655360 + getRamValue(0x7E0F35)  * 2560 + getRamValue(0x7E0F34) * 10
 			
 			b = {}
 			for j = 1, #sram do
 				b[#b + 1] = getRamValue(sram[j])
 			end
 			
+			b[#b + 1] = score
 			table.insert(f, b)
 			csv.write(rfilepath, f)
 			
