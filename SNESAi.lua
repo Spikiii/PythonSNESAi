@@ -10,7 +10,7 @@ buttonNames = {"A", "B", "X", "Y", "Up", "Down", "Left", "Right"}
 frame = 1
 
 --Settings
-record = true
+record = false
 rfilepath = "ram.csv"
 ifilepath = "inp.csv"
 sram = {0x0014A2, 0x001496, 0x000E32, 0x000E33, 0x000E34, 0x000ED3, 0x000ED2, 0x000ED4,
@@ -63,6 +63,21 @@ function getInputs()
 	inp(inputs, 1)
 end
 
+function updateRam()
+	score = getRamValue(0x7E0F36) * 655360 + getRamValue(0x7E0F35)  * 2560 + getRamValue(0x7E0F34) * 10	
+	b = {}
+	f = {}
+	
+	b = getBytes(0x7E0000, 0x7E1FFF)
+	for k = 1, #b do
+		b[k] = getRamValue(b[k])
+	end
+	
+	b[#b + 1] = score
+	table.insert(f, b)
+	csv.write(rfilepath, f)
+end
+	
 --0x7E0000:0x7E1FFF
 
 if record then
@@ -85,30 +100,27 @@ if record then
 		emu.frameadvance()
 		
 	end
-	csv.write(rfilepath, f)
+	csv.write("testRam.csv", f)
 	
 else
-	local f = {}
 	prevFrame = 1
-	while true do
+	for q = 1, 100000 do
+	
 		local i = csv.read(ifilepath)
-		if #i + 1 > preFrame then
+		print("Searching...")
+		if (#i + 1) > prevFrame then
+			print("Update")
 			getInputs()
-			score = getRamValue(0x7E0F36) * 655360 + getRamValue(0x7E0F35)  * 2560 + getRamValue(0x7E0F34) * 10
-			
-			b = {}
-			for j = 1, #sram do
-				b[#b + 1] = getRamValue(sram[j])
-			end
-			
-			b[#b + 1] = score
-			table.insert(f, b)
-			csv.write(rfilepath, f)
-			
+			updateRam()
 			emu.frameadvance()
 			prevFrame = #i + 1
 			frame = frame + 1
 		end
+		
+		if q == 1 then
+			updateRam()
+		end
+		
 	end
 end
 			

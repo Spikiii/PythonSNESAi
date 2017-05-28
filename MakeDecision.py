@@ -1,12 +1,11 @@
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 import random
 import math
 import csv
 import os
 import sklearn
-from autograd import grad
+import copy
 #Eytan will write some code and I will use the stuff he writes under the eytan package
 class nickNet():
     def __init__(self, X, Y, layers, hiddenSize):
@@ -18,18 +17,18 @@ class nickNet():
         self.hidden = hiddenSize
         self.W1 = np.random.randn(self.input, self.hidden)
         self.Wfinal = np.random.randn(self.hidden,self.output)
-        self.Wmid = np.array((), dtype = float)
+        self.Wmid = np.ones(hiddenSize, dtype = float)
         self. wAll = []
         for k in range(layers - 1):
             if (k%2 != 0):
-                np.append(self.Wmid,self.wfinal.T)
+                np.append(self.Wmid,self.Wfinal.T)
             else:
-                np.append(self.Wmid,self.wfinal)
+                np.append(self.Wmid,self.Wfinal)
         self.wAll.append(self.W1)
         self.wAll.append(self.Wmid)
         self.wAll.append(self.Wfinal)
-        self.costPrime = grad(self.cost())
-
+        #self.costPrime = grad(self.cost())
+        #print(self.wAll)
     def activate(self, num):
         return 1/(1+np.exp(-num))
     def netRun(self):
@@ -41,11 +40,12 @@ class nickNet():
     def net(self, var):
         result = np.dot(var, self.W1)
         result = self.activate(result)
+        #print(var)
         for k in range(self.Wmid.shape[0]):
-            result = np.dot(result, self.wMid[k])
+            result = np.dot(result, self.Wmid[k])
             result = self.activate(result)
         result = np.dot(result, self.Wfinal)
-        result = self.activate(result[0])
+        result = self.activate(result)
         result = round(result)
         return result
     def cost(self):
@@ -58,7 +58,7 @@ class nickNet():
     def mutate(self):
         self.W1 += self.W1*.01*random.choice((-1,1))
         for k in range(self.Wmid.shape[0]):
-            self.Wmid[k] += self.Wmid*.01*random.choice((-1,1))
+            self.Wmid += self.Wmid*.01*random.choice((-1,1))
         self.Wfinal += self.Wfinal*.01*random.choice((-1,1))
         
 class Trainer():
@@ -66,7 +66,7 @@ class Trainer():
         self.NN = NN
         self.tol = tol
     def optimize(self):
-        while (sum(abs(self.NN.costPrime())) > tol):
+        while (sum(abs(self.NN.costPrime())) > self.tol):
             return 7
             
         
@@ -106,85 +106,87 @@ def playGame(NN):
         for i in range(k+1, len(buttons)):
             for j in range(i + 1, len(buttons)):
                 inputs.append(buttons[k] + buttons[i] + buttons[j])
-    ramCommand = pd.readcsv('isThereANewFrame.csv')
-    command = ramCommand.values
-    int timer = 0
-    while(timer < 100):
-        if(not np.array_equal(pd.readscv('isThereANewFrame.csv').value, command)):
-            command = pd.readscv('isThereANewFrame.csv').values
-            Mario = NN.net(command[0:command.size-1])
-            command = inputs[Mario]
+    ramCommand = pd.read_csv('ram.csv')
+    command = np.array([1], dtype=float)
+	
+    timer = 0
+    for i in range(10000):
+        print("Searching...")
+        if(not np.array_equal(pd.read_csv('ram.csv').values, command)):
+            print("Change")
+            command = pd.read_csv('ram.csv').values
+            print(pd.read_csv('ram.csv').values)
+            #print(command)
+            Mario = NN.net(command)
+            commandStr = inputs[Mario]
             write = [0,0,0,0,0,0,0,0,0,0]
-            for k in range(len(Command)):
-                if(command[k] == 'u'):
+            for k in range(len(commandStr)):
+                if(commandStr[k] == 'u'):
                     write[0] = 1
-                elif(command[k] == 'd'):
+                elif(commandStr[k] == 'd'):
                     write[1] = 1
-                elif(command[k] == 'l'):
+                elif(commandStr[k] == 'l'):
                     write[2] = 1
-                elif(command[k] == 'r'):
+                elif(commandStr[k] == 'r'):
                     write[3] = 1
-                elif(command[k] == 'a'):
+                elif(commandStr[k] == 'a'):
                     write[4] = 1
-                elif(command[k] == 'b'):
+                elif(commandStr[k] == 'b'):
                     write[5] = 1
-                elif(command[k] == 'x'):
+                elif(commandStr[k] == 'x'):
                     write[6] = 1
-                elif(command[k] == 'y'):
+                elif(commandStr[k] == 'y'):
                     write[7] = 1
-                elif(command[k] == 'q'):
+                elif(commandStr[k] == 'q'):
                     write[8] = 1
-                elif(command[k] == 'p'):
+                elif(commandStr[k] == 'p'):
                     write[9] = 1
-            with open('heyEytan.csv', 'w') as csvfile:
+            with open('inp.csv', 'w') as csvfile:
                 for k in write:
                     print ','.join(k)
         timer+=1
+
         return command[command.size-1]
                     
-            
-           
-                   
-               
-           
-           
-           
     # [up, down, left, right, a, b, x, y, rb, lb] [0 = off, 1 = on]
          
-def main():  
+def main():
     X = np.array(([1, 4, 5], [3,6,3], [6,8,5], [4,8,9], [2,5,3]), dtype = float)
-    Y = np.array([1,2,5,8,2], dtype = float)
+    Y = np.array([1], dtype = float)
     NN = nickNet(X,Y,1,3)
-    print(NN.costPrime())
+    #print(NN.costPrime())
     NN.mutate()
                  
-    
-    data_df = pd.read_csv('ramValuesAndInputs.csv')
-    data = data_df.values
+    """    
     #Eliminate all values which don't change much
     for k in range(data.size()):
         if(data[k].var() < 5):
             data.delete(k)
             k-=1
-    NN = nickNet(data, data[5], 2, 4)
     Train = Trainer(NN, 1)
     NN = Train.optimize()
-    howFar = eytan.playGame(NN)
+    """
+
+    data_df = pd.read_csv('testRam.csv')
+    data = data_df.values
+    NN = nickNet(data, Y, 1, 4)
+
+    howFar = playGame(NN)
     marios = []
     marios.append(NN)
     indexBest = 0
     for k in range(9):
-        marios.append(clone.deepclone(NN.mutate()))
+        marios.append(copy.deepcopy(NN.mutate()))
     for k in range(1000):
         for i in range(10):
-            run = eytan.playGame(marios[k])
-            if(run > howFar):
+            run = playGame(marios[k])
+            if(run[0] > howFar[0]):
                 howFar = run
                 indexBest = i
-        Best = clone.deepclone(marios[indexBest])
+        Best = copy.deepcopy(marios[indexBest])
         marios = []
         marios.append(Best)
-        for i in range():
-            marios.append(clone.deepclone(Best.mutate()))
-    
+        for i in range(10):
+            marios.append(copy.deepcopy(Best.mutate()))
+			
 main()
