@@ -9,8 +9,8 @@ import copy
 #Eytan will write some code and I will use the stuff he writes under the eytan package
 class nickNet():
     def __init__(self, X, Y, layers, hiddenSize):
-        self.X = X
-        self.Y = Y
+        self.X = X #input data
+        self.Y = Y  #output data
         self.input = X[0].size
         self.output = 1
         self.layers = layers
@@ -29,8 +29,19 @@ class nickNet():
         self.wAll.append(self.Wfinal)
         #self.costPrime = grad(self.cost())
         #print(self.wAll)
+    def __str__(self):
+        return('NickNet')
     def activate(self, num):
-        return 1/(1+np.exp(-num))
+        '''num is a memory state'''
+#        print('max and min of memory state')
+#        print(np.max(num))
+#        print(np.min(num))
+        try:
+            result = 1/(1+np.exp(-num))
+        except:
+            print('problem with num')
+            print(np.max(num))
+        return result
     def netRun(self):
         final = []
         for k in range(self.X.shape[0]):
@@ -46,7 +57,7 @@ class nickNet():
             result = self.activate(result)
         result = np.dot(result, self.Wfinal)
         result = self.activate(result)
-        result = round(result)
+        result = int(round(result))
         return result
     def cost(self):
         tot = 0;
@@ -60,6 +71,7 @@ class nickNet():
         for k in range(self.Wmid.shape[0]):
             self.Wmid += self.Wmid*.01*random.choice((-1,1))
         self.Wfinal += self.Wfinal*.01*random.choice((-1,1))
+        return self
         
 class Trainer():
     def __init__(self, NN, tol):
@@ -106,18 +118,20 @@ def playGame(NN):
         for i in range(k+1, len(buttons)):
             for j in range(i + 1, len(buttons)):
                 inputs.append(buttons[k] + buttons[i] + buttons[j])
-    ramCommand = pd.read_csv('ram.csv')
+    ramCommand = pd.read_csv('ram.csv') #game state
     command = np.array([1], dtype=float)
 	
     timer = 0
     for i in range(10000):
-        print("Searching...")
-        if(not np.array_equal(pd.read_csv('ram.csv').values, command)):
-            print("Change")
-            command = pd.read_csv('ram.csv').values
-            print(pd.read_csv('ram.csv').values)
-            #print(command)
+
+        ramstate = pd.read_csv('ram.csv', header = None).values[0]
+        if(not np.array_equal(ramstate, command)):
+        
+            command = ramstate
+#            print(command)
+            
             Mario = NN.net(command)
+        
             commandStr = inputs[Mario]
             write = [0,0,0,0,0,0,0,0,0,0]
             for k in range(len(commandStr)):
@@ -141,9 +155,11 @@ def playGame(NN):
                     write[8] = 1
                 elif(commandStr[k] == 'p'):
                     write[9] = 1
+            write[3] = 1
             with open('inp.csv', 'w') as csvfile:
-                for k in write:
-                    print ','.join(k)
+                cmdwriter = csv.writer(csvfile, delimiter = ',')
+                cmdwriter.writerow(write)
+
         timer+=1
 
         return command[command.size-1]
@@ -171,22 +187,32 @@ def main():
     data = data_df.values
     NN = nickNet(data, Y, 1, 4)
 
+
     howFar = playGame(NN)
+    #marios is a list of mutated bots
     marios = []
     marios.append(NN)
     indexBest = 0
+    #create 9 more mutated bots for a total of 10
     for k in range(9):
-        marios.append(copy.deepcopy(NN.mutate()))
+        marios.append(NN.mutate())       #not sure if we need to copy
+    #each bot plays 1 game then mutates
+    #1000 generations run
     for k in range(1000):
         for i in range(10):
             run = playGame(marios[k])
-            if(run[0] > howFar[0]):
+            if(run > howFar):
                 howFar = run
                 indexBest = i
-        Best = copy.deepcopy(marios[indexBest])
+        print('the best mutant was %i' % indexBest)
+
+        #make a new list of bots
+        Best = marios[indexBest]  #not sure if we
+        print(Best)
         marios = []
         marios.append(Best)
-        for i in range(10):
-            marios.append(copy.deepcopy(Best.mutate()))
+
+        for i in range(9):
+            marios.append(Best.mutate())  #not sure if we need to copy
 			
 main()
