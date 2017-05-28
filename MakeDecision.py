@@ -162,7 +162,7 @@ def playGame(NN):
 
         timer+=1
 
-        return command[command.size-1]
+    return command[command.size-1]
                     
     # [up, down, left, right, a, b, x, y, rb, lb] [0 = off, 1 = on]
          
