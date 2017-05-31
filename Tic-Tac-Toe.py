@@ -244,9 +244,8 @@ def main():
         for k in range(len(team1)):
             for i in range(len(team2)):
                 result = playGame(team1[k],team2[i])
-                if(result > 0):
-                    team1Wins[k] += result
-                    team2Wins[i] -= result
+                team1Wins[k] += result
+                team2Wins[i] -= result
 
                     
         
