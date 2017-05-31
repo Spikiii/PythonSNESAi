@@ -16,6 +16,10 @@ class TicTacToe():
         for k in range(len(self.board)):
             for i in range(len(self.board[k])):
                 self.board[k][i] = 0
+    def randomBoard(self):
+        for k in range(len(self.board)):
+            for i in range(len(self.board[k])):
+                self.board[k][i] = random.choice((0,0,1,2))
     def isWin(self, player):
         for k in range(len(self.board)):
             if(self.board[k][0] == player and self.board[k][1] ==self.board[k][0] and self.board[k][2] == self.board[k][0]):
@@ -58,11 +62,21 @@ class TicTacToe():
             return False
         else:
             return True
+class validMoveBot():
+    def __init__(self, id):
+        self.id = id
+    def net(self, var):
+        valids = []
+        for k in range(len(var)):
+            if(var[k] == 0):
+                valids.append(k)
+        return random.choice(valids)
         
 class nickNet():
-    def __init__(self, X, Y, layers, hiddenSize):
+    def __init__(self, X, Y, layers, hiddenSize, id):
         self.X = X #input data
         self.Y = Y  #output data
+        self.id = id
         self.inp = X[0].size
         self.output = 1
         self.layers = layers
@@ -87,6 +101,8 @@ class nickNet():
     def __str__(self):
         return('NickNet')
     def normilize(self, data):
+        if(max(data)-min(data) == 0):
+            return data
         for k in range(len(data)):
             data[k] = float(data[k])
         madMax = max(data)
@@ -120,6 +136,12 @@ class nickNet():
             final.append(result)
         return final
     def net(self, var):
+        for k in range(len(var)):
+            if (var[k] == self.id):
+                var[k] = 1
+            elif(var[k] != self.id and var[k] !=0):
+                 var[k] = -1
+        var = self.normilize(var)
         result = np.dot(var, self.W1)
         result = self.activate(result)
         #print(var)
@@ -180,6 +202,7 @@ def playGame(player1, player2):
 
     #print('newGameHasStarted')
     game = TicTacToe()
+    game.randomBoard()
     player1ValidMoves = 0
     player2ValidMoves = 0
     while(not game.isWin(1) and not game.isWin(2) and not game.isFull()):
@@ -212,7 +235,7 @@ def main():
     generations = 100
     X = np.array(([[0,0,0,0,0,0,0,0,0]]), dtype = float) #initial empty board
     Y = np.array([4], dtype = float)
-    player1 = nickNet(X,Y,3,9)
+    player1 = nickNet(X,Y,3,9, 1)
     #print(NN.costPrime())
     #NN.mutate()
                  
@@ -225,7 +248,7 @@ def main():
     Train = Trainer(NN, 1)
     NN = Train.optimize()
     """
-    player2 = nickNet(X, Y, 3, 9)
+    player2 = nickNet(X, Y, 3, 9, 2)
     team1 = []
     team2 = []
     team1.append(player1)
@@ -280,12 +303,23 @@ def test2():
     bd = [0,0,0,0,0,1,1,2,2]
     X = np.array([bd], dtype = float) #initial empty board
     Y = np.array([4], dtype = float)
-    player1 = nickNet(X,Y,1,3)
-    print(player1.Wfinal)
-    print(player1.net(bd))
-    player1.mutate()
-    print(player1.Wfinal)
-    print(player1.net(bd))
-#test2()
+    player1 = nickNet(X,Y,1,3,1)
+    player2 = validMoveBot(2)
+    team1 = []
+    for k in range(100):
+       team1.append(copy.deepcopy(player1.mutate()))
+    scores = [0]*len(team1)
+    for p in range(1000):
+        for k in range(len(team1)):
+            result = playGame(team1[k], player2)
+            scores[k] +=result
+        bestIndex = scores.index(max(scores))
+        best = copy.deepcopy(team1[bestIndex])
+        team1 = []
+        team1.append(copy.deepcopy(best))
+        for k in range(99):
+            team1.append(copy.deepcopy(best.mutate()))
+        
+test2()
 #test()
-main()
+#main()
