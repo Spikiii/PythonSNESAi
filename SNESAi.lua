@@ -7,7 +7,6 @@ local csv = require "simplecsv"
 
 --Declarations
 buttonNames = {"A", "B", "X", "Y", "Up", "Down", "Left", "Right"}
-frame = 1
 
 --Settings
 record = false
@@ -51,8 +50,7 @@ function getBytes(startpoint, endpoint)
 end
 
 function getInputs()
-	local f = csv.read(ifilepath)
-	i = f[frame]
+	local i = csv.read(ifilepath)
 	inpOrder = {"Up", "Down", "Left", "Right", "A", "B", "X", "Y", "Lb", "Rb"}
 	inputs = {}
 	for j = 1, #i do
@@ -76,6 +74,18 @@ function updateRam()
 	b[#b + 1] = score
 	table.insert(f, b)
 	csv.write(rfilepath, f)
+end
+
+
+function compareTables(a, b)
+	--Used for comparing inputs...
+	equal = true
+	for i = 1, #a do
+		if(a[i] ~= b[i] and equal == true) then
+			equal = false
+		end
+	end
+	return equal
 end
 	
 --0x7E0000:0x7E1FFF
@@ -103,17 +113,17 @@ if record then
 	csv.write("testRam.csv", f)
 	
 else
-	prevFrame = 1
+	previ = csv.read(ifilepath)
 	for q = 1, 100000 do
 	
 		local i = csv.read(ifilepath)
 		print("Searching...")
-		if (#i + 1) > prevFrame then
-			print("Update")
+		if(compareTables(previ, i) ~= true) then
+			print("Update!")
 			getInputs()
 			updateRam()
 			emu.frameadvance()
-			prevFrame = #i + 1
+			previ = i
 			frame = frame + 1
 		end
 		

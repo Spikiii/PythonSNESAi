@@ -7,6 +7,10 @@ import os
 import sklearn
 import copy
 #Eytan will write some code and I will use the stuff he writes under the eytan package
+
+#Don't touch this... It's important
+np.seterr('ignore')
+
 class nickNet():
     def __init__(self, X, Y, layers, hiddenSize):
         self.X = X #input data
@@ -124,11 +128,12 @@ def playGame(NN):
     timer = 0
     for i in range(10000):
 
+        print("Searching...")
         ramstate = pd.read_csv('ram.csv', header = None).values[0]
         if(not np.array_equal(ramstate, command)):
-        
+            print("Update!")
             command = ramstate
-#            print(command)
+            print(command)
             
             Mario = NN.net(command)
         
